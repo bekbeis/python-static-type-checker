@@ -34,6 +34,10 @@
       {
         "command": "helloworld.java",
         "title": "Run JAVA"
+      },
+      {
+        "command": "helloworld.getFile",
+        "title": "Get File"
       }
     ]
   },

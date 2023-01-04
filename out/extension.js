@@ -36,11 +36,24 @@ function activate(context) {
         const output = (0, child_process_1.execSync)('java -cp ' + __dirname + '/java/ Main', { encoding: 'utf-8' });
         vscode.window.showInformationMessage(output);
     });
+    let disposable6 = vscode.commands.registerCommand('helloworld.getFile', () => {
+        if (vscode.workspace.workspaceFolders !== undefined) {
+            let wf = vscode.workspace.workspaceFolders[0].uri.path;
+            let f = vscode.workspace.workspaceFolders[0].uri.fsPath;
+            let message = `YOUR-EXTENSION: folder: ${wf} - ${f}`;
+            vscode.window.showInformationMessage(message);
+        }
+        else {
+            let message = "YOUR-EXTENSION: Working folder not found, open a folder an try again";
+            vscode.window.showErrorMessage(message);
+        }
+    });
     context.subscriptions.push(disposable1);
     context.subscriptions.push(disposable2);
     context.subscriptions.push(disposable3);
     context.subscriptions.push(disposable4);
     context.subscriptions.push(disposable5);
+    context.subscriptions.push(disposable6);
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated
