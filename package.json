@@ -22,6 +22,10 @@
       {
         "command": "pstc.javaCall",
         "title": "Call Java"
+      },
+      {
+        "command": "pstc.getFilePath",
+        "title": "Get File Path"
       }
     ]
   },

@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { execSync } from 'child_process';
+import { measureMemory } from 'vm';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -26,8 +27,17 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage(output);
 	});
 
+	let getFilePathDisposable = vscode.commands.registerCommand('pstc.getFilePath', () => {
+		if (vscode.window.activeTextEditor !== undefined) {
+			const currentOpenFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
+			const catOutput = execSync('cat ' + currentOpenFilePath, { encoding: 'utf-8'});
+			vscode.window.showInformationMessage(catOutput);
+		}
+	});
+
 	context.subscriptions.push(greetDisposable);
 	context.subscriptions.push(javaCallDisposable);
+	context.subscriptions.push(getFilePathDisposable);
 }
 
 // This method is called when your extension is deactivated

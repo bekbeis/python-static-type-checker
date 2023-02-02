@@ -24,8 +24,16 @@ function activate(context) {
         const output = (0, child_process_1.execSync)('java -cp ' + __dirname + '/java/ Main', { encoding: 'utf-8' });
         vscode.window.showInformationMessage(output);
     });
+    let getFilePathDisposable = vscode.commands.registerCommand('pstc.getFilePath', () => {
+        if (vscode.window.activeTextEditor !== undefined) {
+            const currentOpenFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
+            const catOutput = (0, child_process_1.execSync)('cat ' + currentOpenFilePath, { encoding: 'utf-8' });
+            vscode.window.showInformationMessage(catOutput);
+        }
+    });
     context.subscriptions.push(greetDisposable);
     context.subscriptions.push(javaCallDisposable);
+    context.subscriptions.push(getFilePathDisposable);
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated
