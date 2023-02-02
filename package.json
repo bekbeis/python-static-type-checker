@@ -16,16 +16,16 @@
   "contributes": {
     "commands": [
       {
-        "command": "pstc.greeting",
-        "title": "Greeting"
-      },
-      {
         "command": "pstc.javaCall",
         "title": "Call Java"
       },
       {
         "command": "pstc.getFilePath",
         "title": "Get File Path"
+      },
+      {
+        "command": "pstc.scanDocument",
+        "title": "Scan Document"
       }
     ]
   },
