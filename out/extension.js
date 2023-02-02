@@ -39,6 +39,7 @@ function activate(context) {
             //				   of the document to the back end of the system
         }
     });
+    // Checking whether commits work properly 
     context.subscriptions.push(javaCallDisposable);
     context.subscriptions.push(getFilePathDisposable);
     context.subscriptions.push(scanDocumentDisposable);

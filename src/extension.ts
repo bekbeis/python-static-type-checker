@@ -46,6 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Checking whether commits work properly 
 
 	context.subscriptions.push(javaCallDisposable);
 	context.subscriptions.push(getFilePathDisposable);
