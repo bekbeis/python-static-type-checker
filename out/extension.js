@@ -39,9 +39,23 @@ function activate(context) {
             //				   of the document to the back end of the system
         }
     });
+    const highlightSyntaxDisposable = vscode.commands.registerCommand('pstc.highlightSyntax', () => {
+        let contents = [
+            {
+                variableName: 'x',
+                variableType: 'int'
+            },
+            {
+                variableName: 'y',
+                variableType: 'float'
+            }
+        ];
+        vscode.window.showInformationMessage(contents[0].variableName);
+    });
     context.subscriptions.push(javaCallDisposable);
     context.subscriptions.push(getFilePathDisposable);
     context.subscriptions.push(scanDocumentDisposable);
+    context.subscriptions.push(highlightSyntaxDisposable);
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated
