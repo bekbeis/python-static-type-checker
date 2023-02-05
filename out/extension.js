@@ -40,6 +40,8 @@ function activate(context) {
         }
     });
     const highlightSyntaxDisposable = vscode.commands.registerCommand('pstc.highlightSyntax', () => {
+        // Sample object to test the syntax highlighting functionality
+        // NOTE: Add relevant testing features
         let contents = [
             {
                 variableName: 'x',
@@ -50,12 +52,33 @@ function activate(context) {
                 variableType: 'float'
             }
         ];
-        vscode.window.showInformationMessage(contents[0].variableName);
+    });
+    const hoverDisposable = vscode.languages.registerHoverProvider('python', {
+        provideHover(document, position, token) {
+            const range = document.getWordRangeAtPosition(position);
+            const word = document.getText(range);
+            const contents = [
+                { variableName: 'x', variableType: 'TEST OUTPUT FOR VARIABLE X' },
+                { variableName: 'y', variableType: 'TEST OUTPUT FOR VARIABLE Y' }
+            ];
+            var returnedHover;
+            contents.forEach(contentToken => {
+                if (word === contentToken.variableName) {
+                    console.log("SUCCESSFULLY ENTERED THE FOREACH AREA");
+                    returnedHover = new vscode.Hover({
+                        language: "Python",
+                        value: contentToken.variableType
+                    });
+                }
+            });
+            return returnedHover;
+        }
     });
     context.subscriptions.push(javaCallDisposable);
     context.subscriptions.push(getFilePathDisposable);
     context.subscriptions.push(scanDocumentDisposable);
     context.subscriptions.push(highlightSyntaxDisposable);
+    context.subscriptions.push(hoverDisposable);
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated
