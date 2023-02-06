@@ -30,12 +30,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// This method is another option for how the contents of the file currently open in the workspace can be accessed
 	// The access is implemented via the active text editor
+	var prevContent: string | undefined = undefined;
 	const scanDocumentDisposable = vscode.commands.registerCommand('pstc.scanDocument', () => {
 		const editor = vscode.window.activeTextEditor;
 
 		if (editor) {
 			let document = editor.document;
 			const documentText = document.getText();
+			if (prevContent === undefined) {
+				prevContent = documentText;
+			} else {
+				vscode.window.showInformationMessage(`Previous content is saved`);
+			}
 
 			// The code below is to demonstrate whether the file content is accessed successfully
 			vscode.window.showInformationMessage(documentText);
@@ -68,7 +74,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 			const contents = [
 				{ variableName: 'x', variableType: 'TEST OUTPUT FOR VARIABLE X' },
-				{ variableName: 'y', variableType: 'TEST OUTPUT FOR VARIABLE Y' }
+				{ variableName: 'y', variableType: 'TEST OUTPUT FOR VARIABLE Y' },
+				{ variableName: 'z', variableType: 'TEST OUTPUT FOR VARIABLE Z' },
 			];
 
 			var returnedHover;
