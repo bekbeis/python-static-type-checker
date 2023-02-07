@@ -11,8 +11,13 @@ function activate(context) {
     // The code below is a sample of how Java program can be called from the extension environment
     // IMPORTANT NOTE: There is no better option to implement this functionality for now
     const javaCallDisposable = vscode.commands.registerCommand('pstc.javaCall', () => {
+        var currentOpenFilePath;
+        if (vscode.window.activeTextEditor !== undefined) {
+            currentOpenFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
+        }
         (0, child_process_1.execSync)('javac ' + __dirname + '/java/Main.java', { encoding: 'utf-8' });
-        const output = (0, child_process_1.execSync)('java -cp ' + __dirname + '/java/ Main', { encoding: 'utf-8' });
+        // The line of code below runs the Java side of the project passing a file path as an argument
+        const output = (0, child_process_1.execSync)('java -cp ' + __dirname + '/java/ Main ' + currentOpenFilePath, { encoding: 'utf-8' });
         vscode.window.showInformationMessage(output);
     });
     // This method is one option for how the contents of the file currently open in the workspace can be accessed
@@ -46,20 +51,6 @@ function activate(context) {
             //				   of the document to the back end of the system
         }
     });
-    const highlightSyntaxDisposable = vscode.commands.registerCommand('pstc.highlightSyntax', () => {
-        // Sample object to test the syntax highlighting functionality
-        // NOTE: Add relevant testing features
-        let contents = [
-            {
-                variableName: 'x',
-                variableType: 'int'
-            },
-            {
-                variableName: 'y',
-                variableType: 'float'
-            }
-        ];
-    });
     const hoverDisposable = vscode.languages.registerHoverProvider('python', {
         provideHover(document, position, token) {
             const range = document.getWordRangeAtPosition(position);
@@ -85,7 +76,6 @@ function activate(context) {
     context.subscriptions.push(javaCallDisposable);
     context.subscriptions.push(getFilePathDisposable);
     context.subscriptions.push(scanDocumentDisposable);
-    context.subscriptions.push(highlightSyntaxDisposable);
     context.subscriptions.push(hoverDisposable);
 }
 exports.activate = activate;

@@ -26,10 +26,6 @@
       {
         "command": "pstc.scanDocument",
         "title": "Scan Document"
-      },
-      {
-        "command": "pstc.highlightSyntax",
-        "title": "Highlight Syntax"
       }
     ]
   },
