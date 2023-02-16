@@ -62,6 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const range = document.getWordRangeAtPosition(position);
 			const word = document.getText(range);
 
+			// JSON object must be catched and iterated instead of the contents array
 			const contents = [
 				{ variableName: 'x', variableType: 'TEST OUTPUT FOR VARIABLE X' },
 				{ variableName: 'y', variableType: 'TEST OUTPUT FOR VARIABLE Y' },
