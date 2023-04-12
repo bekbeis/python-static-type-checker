@@ -89,6 +89,11 @@ function scanDocument() {
         //				   of the document to the back end of the system
     }
 }
+// This function shows the extension button on the status bar
+function showStatusBarItem() {
+    typeCheckerStatusBarItem.text = 'Run Type Check';
+    typeCheckerStatusBarItem.show();
+}
 function activate(context) {
     const javaCallDisposable = vscode.commands.registerCommand("pstc.javaCall", executeJava);
     const getFilePathDisposable = vscode.commands.registerCommand("pstc.getFilePath", getFilePath);
@@ -128,10 +133,17 @@ function activate(context) {
         const openEditor = vscode.window.visibleTextEditors.filter((editor) => editor.document.uri === event.document.uri)[0];
         decorate(openEditor);
     });
+    // The code below creates the status bar item and adds function to it
+    typeCheckerStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 10000);
+    typeCheckerStatusBarItem.command = 'pstc.javaCall';
+    showStatusBarItem();
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(showStatusBarItem));
+    context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(showStatusBarItem));
     context.subscriptions.push(javaCallDisposable);
     context.subscriptions.push(getFilePathDisposable);
     context.subscriptions.push(scanDocumentDisposable);
     context.subscriptions.push(hoverDisposable);
+    context.subscriptions.push(typeCheckerStatusBarItem);
 }
 exports.activate = activate;
 function deactivate() { }
