@@ -5,6 +5,7 @@ const vscode = require("vscode");
 const child_process_1 = require("child_process");
 // TypeChecker status bar item initialization
 let typeCheckerStatusBarItem;
+let typeCheckerStatusBarItemState = false;
 // Decoration configuration
 const decorationType = vscode.window.createTextEditorDecorationType({
     backgroundColor: "rgba(255, 0, 0, 0.5)",
@@ -42,7 +43,12 @@ function decorate(editor) {
             }
         });
     }
-    editor.setDecorations(decorationType, decorationsArray);
+    if (typeCheckerStatusBarItemState) {
+        editor.setDecorations(decorationType, decorationsArray);
+    }
+    else {
+        editor.setDecorations(decorationType, []);
+    }
 }
 // This function is a sample of how Java program can be called from the extension environment
 // IMPORTANT NOTE: There is no better option to implement this functionality for now
@@ -91,51 +97,67 @@ function scanDocument() {
 }
 // This function shows the extension button on the status bar
 function showStatusBarItem() {
-    typeCheckerStatusBarItem.text = 'Run Type Check';
+    typeCheckerStatusBarItem.text = "▶ Type Check";
     typeCheckerStatusBarItem.show();
+}
+function highlightErrors() {
+    typeCheckerStatusBarItem.text = "✱ Loading...";
+    typeCheckerStatusBarItem.show();
+    setTimeout(() => {
+        typeCheckerStatusBarItem.text = "▶ Type Check";
+        typeCheckerStatusBarItemState = true;
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            decorate(editor);
+        }
+    }, 2000);
 }
 function activate(context) {
     const javaCallDisposable = vscode.commands.registerCommand("pstc.javaCall", executeJava);
     const getFilePathDisposable = vscode.commands.registerCommand("pstc.getFilePath", getFilePath);
     const scanDocumentDisposable = vscode.commands.registerCommand("pstc.scanDocument", scanDocument);
+    const highlightErrorsDisposable = vscode.commands.registerCommand("pstc.highlightErrors", highlightErrors);
     // The code below modifies the hover window to display information about the variable type and possible errors
     const hoverDisposable = vscode.languages.registerHoverProvider("python", {
         provideHover(document, position, token) {
-            var returnedHover;
-            const range = document.getWordRangeAtPosition(position);
-            const word = document.getText(range);
-            contents.forEach((contentToken) => {
-                if (word === contentToken.variableName) {
-                    if (position.line === contentToken.lin &&
-                        position.character === contentToken.col) {
-                        if (contentToken.err === null) {
-                            returnedHover = new vscode.Hover({
-                                language: "Python",
-                                value: `Variable type: ` +
-                                    contentToken.variableType +
-                                    ` (no issues found)`,
-                            });
-                        }
-                        else {
-                            returnedHover = new vscode.Hover({
-                                language: "Python",
-                                value: contentToken.err,
-                            });
+            if (typeCheckerStatusBarItemState) {
+                var returnedHover;
+                const range = document.getWordRangeAtPosition(position);
+                const word = document.getText(range);
+                contents.forEach((contentToken) => {
+                    if (word === contentToken.variableName) {
+                        if (position.line === contentToken.lin &&
+                            position.character === contentToken.col) {
+                            if (contentToken.err === null) {
+                                returnedHover = new vscode.Hover({
+                                    language: "Python",
+                                    value: `Variable type: ` +
+                                        contentToken.variableType +
+                                        ` (no issues found)`,
+                                });
+                            }
+                            else {
+                                returnedHover = new vscode.Hover({
+                                    language: "Python",
+                                    value: contentToken.err,
+                                });
+                            }
                         }
                     }
-                }
-            });
-            return returnedHover;
+                });
+                return returnedHover;
+            }
         },
     });
     // The code below decorates the active editor when changes are made
     vscode.workspace.onDidChangeTextDocument((event) => {
+        typeCheckerStatusBarItemState = false;
         const openEditor = vscode.window.visibleTextEditors.filter((editor) => editor.document.uri === event.document.uri)[0];
         decorate(openEditor);
     });
     // The code below creates the status bar item and adds function to it
     typeCheckerStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 10000);
-    typeCheckerStatusBarItem.command = 'pstc.javaCall';
+    typeCheckerStatusBarItem.command = "pstc.highlightErrors";
     showStatusBarItem();
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(showStatusBarItem));
     context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(showStatusBarItem));
@@ -144,6 +166,7 @@ function activate(context) {
     context.subscriptions.push(scanDocumentDisposable);
     context.subscriptions.push(hoverDisposable);
     context.subscriptions.push(typeCheckerStatusBarItem);
+    context.subscriptions.push(highlightErrorsDisposable);
 }
 exports.activate = activate;
 function deactivate() { }
