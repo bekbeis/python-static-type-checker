@@ -1,6 +1,9 @@
 import * as vscode from "vscode";
 import { execSync } from "child_process";
 
+// JSON object containing type checking results
+let results;
+
 // TypeChecker status bar item initialization
 let typeCheckerStatusBarItem: vscode.StatusBarItem;
 let typeCheckerStatusBarItemState: boolean = false;
@@ -10,31 +13,16 @@ const decorationType = vscode.window.createTextEditorDecorationType({
   backgroundColor: "rgba(255, 0, 0, 0.5)",
 });
 
-// JSON object must be catched and iterated instead of the contents array
-const contents = [
-  { variableName: "x", variableType: `int`, lin: 0, col: 0, err: null },
-  { variableName: "y", variableType: `float`, lin: 0, col: 3, err: null },
-  { variableName: "z", variableType: `float`, lin: 1, col: 0, err: null },
-  { variableName: "x", variableType: `int`, lin: 1, col: 4, err: null },
-  { variableName: "y", variableType: `float`, lin: 1, col: 8, err: null },
-  {
-    variableName: "x",
-    variableType: `int`,
-    lin: 2,
-    col: 0,
-    err: `ERROR: expression has type "str", variable has type "int"`,
-  },
-];
-
 // This function detects variables and sets the decoration of the active editor
 function decorate(editor: vscode.TextEditor) {
   let decorationsArray: vscode.DecorationOptions[] = [];
 
   let sourceCode = editor.document.getText();
   const sourceCodeArr = sourceCode.split("\n");
+  const fName = getFileName();
 
   for (let line = 0; line < sourceCodeArr.length; line++) {
-    contents.forEach((contentToken) => {
+    results[fName].forEach((contentToken) => {
       let match = sourceCodeArr[line].match(contentToken.variableName);
       let range;
       if (
@@ -135,6 +123,15 @@ function highlightErrors() {
   }, 2000);
 }
 
+function getFileName(): string | undefined {
+  if (vscode.window.activeTextEditor !== undefined) {
+    const currentOpenFilePath =
+      vscode.window.activeTextEditor.document.uri.fsPath;
+    const fileName = currentOpenFilePath.split("/").pop();
+    return fileName?.split(".")[0];
+  }
+}
+
 export function activate(context: vscode.ExtensionContext) {
   const javaCallDisposable = vscode.commands.registerCommand(
     "pstc.javaCall",
@@ -163,8 +160,9 @@ export function activate(context: vscode.ExtensionContext) {
         var returnedHover;
         const range = document.getWordRangeAtPosition(position);
         const word = document.getText(range);
+        const fName = getFileName();
 
-        contents.forEach((contentToken) => {
+        results[fName].forEach((contentToken) => {
           if (word === contentToken.variableName) {
             if (
               position.line === contentToken.lin &&
@@ -174,9 +172,7 @@ export function activate(context: vscode.ExtensionContext) {
                 returnedHover = new vscode.Hover({
                   language: "Python",
                   value:
-                    `Variable type: ` +
-                    contentToken.variableType +
-                    ` (no issues found)`,
+                    `Type: ` + contentToken.variableType + ` (no issues found)`,
                 });
               } else {
                 returnedHover = new vscode.Hover({

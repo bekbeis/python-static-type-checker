@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 const child_process_1 = require("child_process");
+// JSON object containing type checking results
+let results;
 // TypeChecker status bar item initialization
 let typeCheckerStatusBarItem;
 let typeCheckerStatusBarItemState = false;
@@ -10,28 +12,14 @@ let typeCheckerStatusBarItemState = false;
 const decorationType = vscode.window.createTextEditorDecorationType({
     backgroundColor: "rgba(255, 0, 0, 0.5)",
 });
-// JSON object must be catched and iterated instead of the contents array
-const contents = [
-    { variableName: "x", variableType: `int`, lin: 0, col: 0, err: null },
-    { variableName: "y", variableType: `float`, lin: 0, col: 3, err: null },
-    { variableName: "z", variableType: `float`, lin: 1, col: 0, err: null },
-    { variableName: "x", variableType: `int`, lin: 1, col: 4, err: null },
-    { variableName: "y", variableType: `float`, lin: 1, col: 8, err: null },
-    {
-        variableName: "x",
-        variableType: `int`,
-        lin: 2,
-        col: 0,
-        err: `ERROR: expression has type "str", variable has type "int"`,
-    },
-];
 // This function detects variables and sets the decoration of the active editor
 function decorate(editor) {
     let decorationsArray = [];
     let sourceCode = editor.document.getText();
     const sourceCodeArr = sourceCode.split("\n");
+    const fName = getFileName();
     for (let line = 0; line < sourceCodeArr.length; line++) {
-        contents.forEach((contentToken) => {
+        results[fName].forEach((contentToken) => {
             let match = sourceCodeArr[line].match(contentToken.variableName);
             let range;
             if (match !== null &&
@@ -112,6 +100,13 @@ function highlightErrors() {
         }
     }, 2000);
 }
+function getFileName() {
+    if (vscode.window.activeTextEditor !== undefined) {
+        const currentOpenFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
+        const fileName = currentOpenFilePath.split("/").pop();
+        return fileName?.split(".")[0];
+    }
+}
 function activate(context) {
     const javaCallDisposable = vscode.commands.registerCommand("pstc.javaCall", executeJava);
     const getFilePathDisposable = vscode.commands.registerCommand("pstc.getFilePath", getFilePath);
@@ -124,16 +119,15 @@ function activate(context) {
                 var returnedHover;
                 const range = document.getWordRangeAtPosition(position);
                 const word = document.getText(range);
-                contents.forEach((contentToken) => {
+                const fName = getFileName();
+                results[fName].forEach((contentToken) => {
                     if (word === contentToken.variableName) {
                         if (position.line === contentToken.lin &&
                             position.character === contentToken.col) {
                             if (contentToken.err === null) {
                                 returnedHover = new vscode.Hover({
                                     language: "Python",
-                                    value: `Variable type: ` +
-                                        contentToken.variableType +
-                                        ` (no issues found)`,
+                                    value: `Type: ` + contentToken.variableType + ` (no issues found)`,
                                 });
                             }
                             else {
