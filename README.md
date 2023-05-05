@@ -43,7 +43,7 @@ To use the type checker efficiently, the user should have familiarity with the n
 1. Open the directory of your project in the opened VS Code window.
 2. To perform type check on your Python file, press the Type Check button (see Figure-2) on the lower bar of VS Code. <p align="center"> <img src="rdme/Button.jpg" width="100"> <br> Figure-2. Type Check button. </p>
 3. After performing the type check, the extension will highlight all the type mismatches in your file as in Figure-3. This way you can see exactly which line and variable causes an error. Then hover over the highlighted variable to see error details (see Figure-4). <p align="center"> <img src="rdme/Highlight.png" width="400"> <br> Figure-3. Error highlight after type check. </p> <p align="center"> <img src="rdme/ErrorDetails.jpg" width="400"> <br> Figure-4. Error details of the highlighted variable. </p>
-4. You can also see all the types of a variable by simply hovering over it.
+4. You can also see all the types of a variable by simply hovering over its *first symbol*.
 ## Contacts
 For any enquiries and suggestions, please do not hesitate to send an email to one of the next addresses:<br>
 <a href="mailto:akerke.tolegen@nu.edu.kz" target="_blank">akerke.tolegen@nu.edu.kz</a><br>
