@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { execSync } from "child_process";
+const fs = require("fs");
 
 // JSON object containing type checking results
 let results;
@@ -19,22 +20,21 @@ function decorate(editor: vscode.TextEditor) {
 
   let sourceCode = editor.document.getText();
   const sourceCodeArr = sourceCode.split("\n");
-  const fName = getFileName();
 
   for (let line = 0; line < sourceCodeArr.length; line++) {
-    results[fName].forEach((contentToken) => {
-      let match = sourceCodeArr[line].match(contentToken.variableName);
+    results.forEach((varToken) => {
+      let match = sourceCodeArr[line].match(varToken.variableName);
       let range;
       if (
         match !== null &&
         match.index !== undefined &&
-        contentToken.err !== null
+        varToken.error !== null
       ) {
         range = new vscode.Range(
-          new vscode.Position(contentToken.lin, contentToken.col),
+          new vscode.Position(varToken.line - 1, varToken.col - 1),
           new vscode.Position(
-            contentToken.lin,
-            contentToken.col + contentToken.variableName.length
+            varToken.line - 1,
+            varToken.col - 1 + varToken.variableName.length
           )
         );
         let decoration = { range };
@@ -49,34 +49,48 @@ function decorate(editor: vscode.TextEditor) {
   }
 }
 
-// This function is a sample of how Java program can be called from the extension environment
-// IMPORTANT NOTE: There is no better option to implement this functionality for now
-function executeJava() {
-  var currentOpenFilePath;
-  if (vscode.window.activeTextEditor !== undefined) {
-    currentOpenFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
+// This function is how Java program can be called from the extension environment
+function executeTypeChecking() {
+  try {
+    const file = getFile();
+    execSync(
+      "cd " +
+        __dirname +
+        "/java/classes; java -cp .:../lib/java-cup-11b-runtime.jar:../lib/json-simple-1.1.1.jar Main " +
+        file,
+      { encoding: "utf-8" }
+    );
+    execSync("mv " + __dirname + "/java/classes/AST_RESULT.json " + __dirname, {
+      encoding: "utf-8",
+    });
+  } catch (error) {
+    console.log(error);
+    vscode.window.showErrorMessage(
+      `Something went wrong. Check the console for information.`
+    );
   }
-  execSync("javac " + __dirname + "/java/Main.java", { encoding: "utf-8" });
-  // The line of code below runs the Java side of the project passing a file path as an argument
-  const output = execSync(
-    "java -cp " + __dirname + "/java/ Main " + currentOpenFilePath,
-    { encoding: "utf-8" }
-  );
-  vscode.window.showInformationMessage(output);
+}
+
+function readJSON() {
+  const path = "./AST_RESULT.json";
+  fs.readFile(require.resolve(path), (err: any, data: string) => {
+    if (err) {
+      console.log(err);
+    } else {
+      results = JSON.parse(data);
+    }
+  });
 }
 
 // This function is one option for how the contents of the file currently open in the workspace can be accessed
 // The access is implemented via the file path
-function getFilePath() {
+function getFile(): string | undefined {
   if (vscode.window.activeTextEditor !== undefined) {
     const currentOpenFilePath =
       vscode.window.activeTextEditor.document.uri.fsPath;
-
-    // The code below is to demonstrate whether the file content is accessed successfully
-    const catOutput = execSync("cat " + currentOpenFilePath, {
-      encoding: "utf-8",
-    });
-    vscode.window.showInformationMessage(catOutput);
+    // const fileName = currentOpenFilePath.split("/").pop();
+    // return fileName?.split(".")[0];
+    return currentOpenFilePath;
   }
 }
 
@@ -113,36 +127,19 @@ function showStatusBarItem() {
 function highlightErrors() {
   typeCheckerStatusBarItem.text = "✱ Loading...";
   typeCheckerStatusBarItem.show();
+  executeTypeChecking();
   setTimeout(() => {
     typeCheckerStatusBarItem.text = "▶ Type Check";
     typeCheckerStatusBarItemState = true;
+    readJSON();
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       decorate(editor);
     }
-  }, 2000);
-}
-
-function getFileName(): string | undefined {
-  if (vscode.window.activeTextEditor !== undefined) {
-    const currentOpenFilePath =
-      vscode.window.activeTextEditor.document.uri.fsPath;
-    const fileName = currentOpenFilePath.split("/").pop();
-    return fileName?.split(".")[0];
-  }
+  }, 3000);
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  const javaCallDisposable = vscode.commands.registerCommand(
-    "pstc.javaCall",
-    executeJava
-  );
-
-  const getFilePathDisposable = vscode.commands.registerCommand(
-    "pstc.getFilePath",
-    getFilePath
-  );
-
   const scanDocumentDisposable = vscode.commands.registerCommand(
     "pstc.scanDocument",
     scanDocument
@@ -160,24 +157,23 @@ export function activate(context: vscode.ExtensionContext) {
         var returnedHover;
         const range = document.getWordRangeAtPosition(position);
         const word = document.getText(range);
-        const fName = getFileName();
 
-        results[fName].forEach((contentToken) => {
-          if (word === contentToken.variableName) {
+        results.forEach((varToken) => {
+          if (word === varToken.variableName) {
             if (
-              position.line === contentToken.lin &&
-              position.character === contentToken.col
+              position.line === varToken.line - 1 &&
+              position.character === varToken.col - 1
             ) {
-              if (contentToken.err === null) {
+              if (varToken.error === null) {
                 returnedHover = new vscode.Hover({
                   language: "Python",
                   value:
-                    `Type: ` + contentToken.variableType + ` (no issues found)`,
+                    `Type: ` + varToken.variableType + ` (no issues found)`,
                 });
               } else {
                 returnedHover = new vscode.Hover({
                   language: "Python",
-                  value: contentToken.err,
+                  value: varToken.error,
                 });
               }
             }
@@ -212,8 +208,10 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeTextEditorSelection(showStatusBarItem)
   );
 
-  context.subscriptions.push(javaCallDisposable);
-  context.subscriptions.push(getFilePathDisposable);
+  setInterval(() => {
+    readJSON();
+  }, 1000);
+
   context.subscriptions.push(scanDocumentDisposable);
   context.subscriptions.push(hoverDisposable);
   context.subscriptions.push(typeCheckerStatusBarItem);

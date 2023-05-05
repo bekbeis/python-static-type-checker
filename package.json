@@ -16,14 +16,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "pstc.javaCall",
-        "title": "Call Java"
-      },
-      {
-        "command": "pstc.getFilePath",
-        "title": "Get File Path"
-      },
-      {
         "command": "pstc.scanDocument",
         "title": "Scan Document"
       }

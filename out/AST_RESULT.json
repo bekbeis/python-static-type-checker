@@ -1,0 +1,5 @@
+[
+	{"variableType":"INT","col":1,"variableName":"a","line":1,"error":null},
+	{"variableType":"FLOAT","col":1,"variableName":"b","line":2,"error":null},
+	{"variableType":"SYNTAXERROR","col":1,"variableName":"a","line":3,"error":"\/Users\/bepc\/Documents\/projects\/temp\/test.py:3: Incompatible types in assignment (expression has type \"FLOAT\", variable has type \"INT\")"}
+]
