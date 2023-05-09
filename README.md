@@ -37,8 +37,9 @@ To use the type checker efficiently, the user should have familiarity with the n
 2. Open the terminal and go to the directory where you want your project to be located.
 3. Type `git clone` and paste the copied URL.
 4. Go to the cloned repository and import the project to the VS Code code editor.
-5. Run the project by pressing F5 and the new VS Code window will open.
-6. Use the opened window as your working space and import your Python files there.
+5. Run `npm install` to install the required packages.
+6. Run the project by pressing F5 and the new VS Code window will open.
+7. Use the opened window as your working space and import your Python files there.
 ## Instructions on how to use the system
 1. Open the directory of your project in the opened VS Code window.
 2. To perform type check on your Python file, press the Type Check button (see Figure-2) on the lower bar of VS Code. <p align="center"> <img src="rdme/Button.jpg" width="100"> <br> Figure-2. Type Check button. </p>
